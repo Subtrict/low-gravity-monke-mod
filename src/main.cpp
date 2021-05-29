@@ -35,8 +35,6 @@ Logger& getLogger() {
     static Logger* logger = new Logger(modInfo);
     return *logger;
 }
-
-float gravityScale;
 float globalGravity = -9.81;
 bool allowLowGravity = false;
 
@@ -65,7 +63,7 @@ MAKE_HOOK_OFFSETLESS(GorillaTagManager_Update, void, GlobalNamespace::GorillaTag
     if(allowLowGravity) {  
         if(leftInput || rightInput) {
             playerPhysics->set_useGravity(false);
-            UnityEngine::Vector3 gravity = globalGravity * gravityScale * (UnityEngine::Vector3::get_up());
+            UnityEngine::Vector3 gravity = globalGravity * getConfig().config["gravityAmount"].GetFloat() * (UnityEngine::Vector3::get_up());
             playerPhysics->AddForce(gravity, UnityEngine::ForceMode::Acceleration);
         }
         else {
@@ -127,6 +125,4 @@ extern "C" void load() {
     getLogger().info("Installing hooks...");
     // Install our hooks (none defined yet)
     getLogger().info("Installed all hooks!");
-
-    gravityScale = getConfig().config["gravityAmount"].GetFloat();
 }
