@@ -110,7 +110,7 @@ extern "C" void setup(ModInfo& info) {
         getConfig().Write();
     }
     if (!getConfig().config.HasMember("gravityAmount")) {
-        getConfig().config.AddMember("gravityAmount", rapidjson::Value(0).SetFloat(0.5f), allocator);
+        getConfig().config.AddMember("gravityAmount", rapidjson::Value(0).SetFloat(0.5), allocator);
         getConfig().Write();
     }
     getLogger().info("Completed setup!");
