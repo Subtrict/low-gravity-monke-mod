@@ -4,7 +4,7 @@
   "info": {
     "name": "Low Gravity Monke Mod",
     "id": "LowGravityMonke",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "url": null,
     "additionalData": {}
   },
@@ -21,6 +21,16 @@
     {
       "id": "monkecodegen",
       "versionRange": "*",
+      "additionalData": {}
+    },
+    {
+      "id": "monkecomputer",
+      "versionRange": "*",
+      "additionalData": {}
+    },
+    {
+      "id": "custom-types",
+      "versionRange": "0.8.3",
       "additionalData": {}
     }
   ],

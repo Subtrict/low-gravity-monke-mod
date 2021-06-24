@@ -3,7 +3,7 @@
     "name": "Low Gravity Monke Mod",
     "id": "LowGravityMonke",
     "author": "Christoffyw",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "packageId": "com.AnotherAxiom.GorillaTag",
     "packageVersion": "1.0.8",
     "coverImage": "coverImage.png",
@@ -18,6 +18,11 @@
             "id": "monkecodegen",
             "version": "^0.5.0",
             "downloadIfMissing": "https://github.com/RedBrumbler/MonkeCodegen/releases/download/0.5.0/MonkeCodegen.qmod"
+        },
+        {
+            "id": "MonkeComputer",
+            "version": ">=1.4.1",
+            "downloadIfMissing": "https://github.com/RedBrumbler/MonkeComputer/releases/latest/download/MonkeComputer.qmod"
         }
     ]
 }

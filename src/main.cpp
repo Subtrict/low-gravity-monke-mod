@@ -16,19 +16,21 @@
 #include "UnityEngine/Transform.hpp"
 #include "UnityEngine/Vector3.hpp"
 #include "UnityEngine/ForceMode.hpp"
+#include "config.hpp"
+#include "LowGravityMonkeWatchView.hpp"
+#include "monkecomputer/shared/GorillaUI.hpp"
+#include "monkecomputer/shared/Register.hpp"
+#include "custom-types/shared/register.hpp"
 
 #include "GorillaLocomotion/Player.hpp"
+
+#define INFO(value...) getLogger().info(value)
+#define ERROR(value...) getLogger().error(value)
 
 using namespace UnityEngine;
 using namespace UnityEngine::XR;
 
 static ModInfo modInfo; // Stores the ID and version of our mod, and is sent to the modloader upon startup
-
-// Loads the config from disk using our modInfo, then returns it for use
-Configuration& getConfig() {
-    static Configuration config(modInfo);
-    return config;
-}
 
 // Returns a logger, useful for printing debug messages
 Logger& getLogger() {
@@ -36,7 +38,7 @@ Logger& getLogger() {
     return *logger;
 }
 float globalGravity = -9.81;
-bool allowLowGravity = false;
+bool moddedRoom = false;
 
 #include "GlobalNamespace/GorillaTagManager.hpp"
 MAKE_HOOK_OFFSETLESS(GorillaTagManager_Update, void, GlobalNamespace::GorillaTagManager* self) {
@@ -52,7 +54,7 @@ MAKE_HOOK_OFFSETLESS(GorillaTagManager_Update, void, GlobalNamespace::GorillaTag
     bool rightInput = false;
     bool leftInput = false;
 
-    if(getConfig().config["isTrigger"].GetBool() == true) {
+    if(config.isTrigger == true) {
         rightInput = OVRInput::Get(OVRInput::Button::PrimaryIndexTrigger, OVRInput::Controller::RTouch);
         leftInput = OVRInput::Get(OVRInput::Button::PrimaryIndexTrigger, OVRInput::Controller::LTouch);
     } else {
@@ -60,10 +62,10 @@ MAKE_HOOK_OFFSETLESS(GorillaTagManager_Update, void, GlobalNamespace::GorillaTag
         leftInput = OVRInput::Get(OVRInput::Button::PrimaryHandTrigger, OVRInput::Controller::LTouch);
     }
 
-    if(allowLowGravity) {  
+    if(moddedRoom  && config.enabled) {  
         if(leftInput || rightInput) {
             playerPhysics->set_useGravity(false);
-            UnityEngine::Vector3 gravity = globalGravity * getConfig().config["gravityAmount"].GetFloat() * (UnityEngine::Vector3::get_up());
+            UnityEngine::Vector3 gravity = globalGravity * config.gravityAmount * (UnityEngine::Vector3::get_up());
             playerPhysics->AddForce(gravity, UnityEngine::ForceMode::Acceleration);
         }
         else {
@@ -89,12 +91,12 @@ MAKE_HOOK_OFFSETLESS(PhotonNetworkController_OnJoinedRoom, void, Il2CppObject* s
     if (currentRoom)
     {
         // get wether or not this is a private room
-        allowLowGravity = !CRASH_UNLESS(il2cpp_utils::RunMethod<bool>(currentRoom, "get_IsVisible"));
+        moddedRoom = !CRASH_UNLESS(il2cpp_utils::RunMethod<bool>(currentRoom, "get_IsVisible"));
     }
-    else allowLowGravity = true;
+    else moddedRoom = true;
 
     // ? construction to switch what is logged, logs work like printf in C with the % placeholders
-    getLogger().info("Room Joined! %s", allowLowGravity ? "Room Was Private" : "Room Was not private");
+    getLogger().info("Room Joined! %s", moddedRoom ? "Room Was Private" : "Room Was not private");
 }
 
 // Called at the early stages of game loading
@@ -102,17 +104,7 @@ extern "C" void setup(ModInfo& info) {
     info.id = ID;
     info.version = VERSION;
     modInfo = info;
-	
-    getConfig().Load();
-    rapidjson::Document::AllocatorType& allocator = getConfig().config.GetAllocator();
-    if (!getConfig().config.HasMember("isTrigger")) {
-        getConfig().config.AddMember("isTrigger", rapidjson::Value(0).SetBool(false), allocator);
-        getConfig().Write();
-    }
-    if (!getConfig().config.HasMember("gravityAmount")) {
-        getConfig().config.AddMember("gravityAmount", rapidjson::Value(0).SetFloat(0.5), allocator);
-        getConfig().Write();
-    }
+
     getLogger().info("Completed setup!");
 }
 
@@ -120,8 +112,14 @@ extern "C" void setup(ModInfo& info) {
 extern "C" void load() {
     il2cpp_functions::Init();
 
+    GorillaUI::Init();
+
     INSTALL_HOOK_OFFSETLESS(getLogger(), GorillaTagManager_Update, il2cpp_utils::FindMethodUnsafe("", "GorillaTagManager", "Update", 0));
     INSTALL_HOOK_OFFSETLESS(getLogger(), PhotonNetworkController_OnJoinedRoom, il2cpp_utils::FindMethodUnsafe("", "PhotonNetworkController", "OnJoinedRoom", 0));
+    
+    custom_types::Register::RegisterType<LowGravityMonke::LowGravityMonkeWatchView>(); 
+    GorillaUI::Register::RegisterWatchView<LowGravityMonke::LowGravityMonkeWatchView*>("Low Gravity Monke", VERSION);
+
     getLogger().info("Installing hooks...");
     // Install our hooks (none defined yet)
     getLogger().info("Installed all hooks!");

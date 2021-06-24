@@ -12,6 +12,8 @@
 #include "beatsaber-hook/shared/utils/typedefs.h"
 #include "beatsaber-hook/shared/utils/utils.h"
 
+#include "custom-types/shared/macros.hpp"
+
 // Define these functions here so that we can easily read configuration and log information from other files
 Configuration& getConfig();
 Logger& getLogger();
